@@ -9,14 +9,17 @@ import autoTable from 'jspdf-autotable';
 
 export default function SalesPage() {
   const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window === 'undefined') return [];
     const storedProducts = localStorage.getItem('products');
     return storedProducts ? JSON.parse(storedProducts) : [];
   });
   const [sales, setSales] = useState<Sale[]>(() => {
+    if (typeof window === 'undefined') return [];
     const storedSales = localStorage.getItem('sales');
     return storedSales ? JSON.parse(storedSales) : [];
   });
   const [expenses, setExpenses] = useState<Expense[]>(() => {
+    if (typeof window === 'undefined') return [];
     const storedExpenses = localStorage.getItem('expenses');
     return storedExpenses ? JSON.parse(storedExpenses) : [];
   });
