@@ -7,6 +7,7 @@ import { formatCurrency, generateId } from '@/lib/utils';
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window === 'undefined') return [];
     const stored = localStorage.getItem('products');
     return stored ? JSON.parse(stored) : [];
   });
