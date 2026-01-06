@@ -6,56 +6,51 @@ import { storage } from '@/lib/storage';
 import { formatCurrency, formatDate, getWeekRange, isDateInWeek } from '@/lib/utils';
 
 export default function ReportsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
+  const products = storage.getProducts() as Product[];
+  const [sales] = useState<Sale[]>(() => storage.getSales() as unknown as Sale[]);
   const [selectedWeekOffset, setSelectedWeekOffset] = useState(0);
   const [report, setReport] = useState<WeeklyReport | null>(null);
 
   useEffect(() => {
-    setProducts(storage.getProducts() as Product[]);
-    setSales(storage.getSales() as unknown as Sale[]);
-  }, []);
+    const generateReport = () => {
+      const currentDate = new Date();
+      currentDate.setDate(currentDate.getDate() + (selectedWeekOffset * 7));
+      const { start, end } = getWeekRange(currentDate);
 
-  useEffect(() => {
+      const weekSales = sales.filter(sale => isDateInWeek(sale.date, start, end));
+
+      const productSalesMap = new Map<string, { quantity: number; revenue: number }>();
+      weekSales.forEach(sale => {
+        const existing = productSalesMap.get(sale.productName) || { quantity: 0, revenue: 0 };
+        productSalesMap.set(sale.productName, {
+          quantity: existing.quantity + sale.quantity,
+          revenue: existing.revenue + sale.totalPrice
+        });
+      });
+
+      const productsSold = Array.from(productSalesMap.entries())
+        .map(([productName, data]) => ({
+          productName,
+          quantity: data.quantity,
+          revenue: data.revenue
+        }))
+        .sort((a, b) => b.revenue - a.revenue);
+
+      const totalRevenue = weekSales.reduce((sum, sale) => sum + sale.totalPrice, 0);
+      const lowStock = products.filter(p => p.quantity < 10);
+
+      setReport({
+        weekStart: start.toISOString(),
+        weekEnd: end.toISOString(),
+        totalSales: weekSales.length,
+        totalRevenue,
+        productsSold,
+        lowStock
+      });
+    };
+
     generateReport();
   }, [products, sales, selectedWeekOffset]);
-
-  const generateReport = () => {
-    const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() + (selectedWeekOffset * 7));
-    const { start, end } = getWeekRange(currentDate);
-
-    const weekSales = sales.filter(sale => isDateInWeek(sale.date, start, end));
-
-    const productSalesMap = new Map<string, { quantity: number; revenue: number }>();
-    weekSales.forEach(sale => {
-      const existing = productSalesMap.get(sale.productName) || { quantity: 0, revenue: 0 };
-      productSalesMap.set(sale.productName, {
-        quantity: existing.quantity + sale.quantitySold,
-        revenue: existing.revenue + sale.total
-      });
-    });
-
-    const productsSold = Array.from(productSalesMap.entries())
-      .map(([productName, data]) => ({
-        productName,
-        quantity: data.quantity,
-        revenue: data.revenue
-      }))
-      .sort((a, b) => b.revenue - a.revenue);
-
-    const totalRevenue = weekSales.reduce((sum, sale) => sum + sale.total, 0);
-    const lowStock = products.filter(p => p.quantity < 10);
-
-    setReport({
-      weekStart: start.toISOString(),
-      weekEnd: end.toISOString(),
-      totalSales: weekSales.length,
-      totalRevenue,
-      productsSold,
-      lowStock
-    });
-  };
 
   const handleShare = async () => {
     if (!report) return;
@@ -83,6 +78,7 @@ ${report.lowStock.length > 0 ? `\nLow Stock Alert:\n${report.lowStock.map(p =>
           title: 'Weekly Sales Report',
           text: reportText
         });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         // User cancelled or share failed
         copyToClipboard(reportText);
@@ -226,7 +222,7 @@ ${report.lowStock.length > 0 ? `\nLow Stock Alert:\n${report.lowStock.map(p =>
                         {product.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.sku}
+                        {product.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
                         {product.quantity} units
