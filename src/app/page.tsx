@@ -6,14 +6,12 @@ import { Product } from '@/types';
 import { formatCurrency, generateId } from '@/lib/utils';
 
 export default function InventoryPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => {
+    const stored = localStorage.getItem('products');
+    return stored ? JSON.parse(stored) : [];
+  });
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', quantity: '', price: '' });
-
-  useEffect(() => {
-    const stored = localStorage.getItem('products');
-    if (stored) setProducts(JSON.parse(stored));
-  }, []);
 
   const saveProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
@@ -28,8 +26,6 @@ export default function InventoryPage() {
       name: formData.name,
       quantity: parseInt(formData.quantity),
       price: parseFloat(formData.price),
-      sku: '',
-      category: '',
       lastUpdated: new Date().toISOString()
     };
     
