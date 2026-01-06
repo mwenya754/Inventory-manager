@@ -15,3 +15,10 @@ export interface Sale {
   totalPrice: number;
   date: string;
 }
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+}

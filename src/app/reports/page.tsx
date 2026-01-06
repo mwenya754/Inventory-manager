@@ -12,8 +12,8 @@ export default function ReportsPage() {
   const [report, setReport] = useState<WeeklyReport | null>(null);
 
   useEffect(() => {
-    setProducts(storage.getProducts());
-    setSales(storage.getSales());
+    setProducts(storage.getProducts() as Product[]);
+    setSales(storage.getSales() as unknown as Sale[]);
   }, []);
 
   useEffect(() => {

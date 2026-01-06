@@ -1,37 +1,53 @@
 import { Product, Sale } from '@/types';
 
-const PRODUCTS_KEY = 'inventory_products';
-const SALES_KEY = 'inventory_sales';
+class Storage {
+  private static readonly PRODUCTS_KEY = 'products';
+  private static readonly SALES_KEY = 'sales';
+  private static readonly EXPENSES_KEY = 'expenses';
 
-export const storage = {
-  // Products
-  getProducts: (): Product[] => {
+  getProducts(): Product[] {
     if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(PRODUCTS_KEY);
-    return data ? JSON.parse(data) : [];
-  },
-
-  saveProducts: (products: Product[]): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-  },
-
-  // Sales
-  getSales: (): Sale[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(SALES_KEY);
-    return data ? JSON.parse(data) : [];
-  },
-
-  saveSales: (sales: Sale[]): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(SALES_KEY, JSON.stringify(sales));
-  },
-
-  // Clear all data
-  clearAll: (): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(PRODUCTS_KEY);
-    localStorage.removeItem(SALES_KEY);
+    const stored = localStorage.getItem(Storage.PRODUCTS_KEY);
+    return stored ? JSON.parse(stored) : [];
   }
-};
+
+  getSales(): Sale[] {
+    if (typeof window === 'undefined') return [];
+    const stored = localStorage.getItem(Storage.SALES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  getExpenses(): Array<{ id: string; description: string; amount: number; date: string }> {
+    if (typeof window === 'undefined') return [];
+    const stored = localStorage.getItem(Storage.EXPENSES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  setProducts(products: Product[]): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(Storage.PRODUCTS_KEY, JSON.stringify(products));
+    }
+  }
+
+  setSales(sales: Sale[]): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(Storage.SALES_KEY, JSON.stringify(sales));
+    }
+  }
+
+  setExpenses(expenses: Array<{ id: string; description: string; amount: number; date: string }>): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(Storage.EXPENSES_KEY, JSON.stringify(expenses));
+    }
+  }
+
+  clear(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(Storage.PRODUCTS_KEY);
+      localStorage.removeItem(Storage.SALES_KEY);
+      localStorage.removeItem(Storage.EXPENSES_KEY);
+    }
+  }
+}
+
+export const storage = new Storage();

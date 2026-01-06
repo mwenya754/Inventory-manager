@@ -1,74 +1,77 @@
 # Inventory Manager
 
-A simple web application for tracking stock, managing inventory, and recording sales. Built with Next.js, TypeScript, and Tailwind CSS.
+A Progressive Web App (PWA) for managing inventory, tracking sales, and monitoring expenses with automated weekly reporting.
 
 ## Features
 
-- **Inventory Management**: Add, edit, and delete products with real-time stock tracking
-- **Sales Tracking**: Record sales transactions with automatic stock updates
-- **Weekly Reports**: Generate and share weekly sales reports
-- **Low Stock Alerts**: Get notified when products are running low
-- **Search & Filter**: Easily find products in your inventory
-- **Local Storage**: All data persists in browser localStorage (no backend required)
+- **Inventory Management**: Add, update, and delete products with real-time stock tracking
+- **Sales Recording**: Record sales with flexible pricing and automatic inventory updates
+- **Expense Tracking**: Log business expenses for accurate profit calculations
+- **Weekly Reports**: Generate professional PDF reports for sales and stock
+- **Net Revenue Tracking**: Real-time calculation of revenue minus expenses
+- **PWA Support**: Install on mobile/desktop for offline-ready app experience
+- **Low Stock Alerts**: Visual warnings when products fall below 10 units
+- **Simple & Clean**: Minimal design, no authentication needed, perfect for in-store use
+
+## Tech Stack
+
+- Next.js 16 (App Router) with Turbopack
+- TypeScript
+- Tailwind CSS 4
+- React Compiler
+- PWA (Progressive Web App)
+- jsPDF with autoTable for report generation
+- LocalStorage (no database needed)
 
 ## Getting Started
 
-First, install dependencies:
+1. Install dependencies:
+```bash
+npm install
+```
 
+2. Run the development server:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Usage
 
-### Inventory Management
-- Navigate to the main page to view all products
-- Click "Add Product" to add new items to inventory
-- Update quantities directly in the table
-- Edit or delete products as needed
-- Low stock items (< 10 units) are highlighted
+### Inventory Page
+- Add new products with name, quantity, and price
+- Update stock quantities directly in the table
+- View total inventory value
+- See low stock warnings
 
-### Recording Sales
-- Go to the "Sales" page
-- Select a product, enter quantity, and optionally adjust price
-- Click "Record Sale" to complete the transaction
-- Stock is automatically updated
+### Sales Page
+- Record sales by selecting a product and quantity
+- View weekly sales statistics
+- Download weekly reports for your manager
+- Track all sales history
 
-### Weekly Reports
-- Visit the "Reports" page to view weekly summaries
-- Navigate between weeks to view historical data
-- See top-selling products and total revenue
-- Print or share reports with your manager
+### Sharing with Manager
+- Simply share the URL (e.g., `http://localhost:3000`)
+- Manager can access both inventory and sales pages
+- Reports can be downloaded and shared via email/messaging
 
-## Sharing the App
+## Data Storage
 
-Since this app uses localStorage, you can:
-1. Deploy it to Vercel, Netlify, or any static hosting service
-2. Share the URL with your team
-3. Each user will have their own local data storage
+All data is stored in the browser's localStorage, making it:
+- Fast and simple
+- No server/database setup required
+- Perfect for single-store usage
+- Data persists across page refreshes
 
-For shared data across team members, consider adding a backend database in the future.
+**Note**: Data is browser-specific. Clearing browser data will reset the app.
 
-## Technologies Used
+## Deployment
 
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **localStorage** - Client-side data persistence
+To deploy for production access:
 
-## Learn More
+```bash
+npm run build
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

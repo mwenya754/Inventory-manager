@@ -28,6 +28,8 @@ export default function InventoryPage() {
       name: formData.name,
       quantity: parseInt(formData.quantity),
       price: parseFloat(formData.price),
+      sku: '',
+      category: '',
       lastUpdated: new Date().toISOString()
     };
     
@@ -54,7 +56,7 @@ export default function InventoryPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
-            <p className="text-gray-600 mt-1">Manage your stock</p>
+            <p className="text-gray-800 mt-1 font-medium">Manage your stock</p>
           </div>
           <Link 
             href="/sales"
@@ -66,7 +68,7 @@ export default function InventoryPage() {
 
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Products ({products.length})</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Products ({products.length})</h2>
             <button
               onClick={() => setShowForm(!showForm)}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -83,14 +85,14 @@ export default function InventoryPage() {
                   placeholder="Product Name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border-2 border-gray-300 rounded text-gray-900 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <input
                   type="number"
                   placeholder="Quantity"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  className="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border-2 border-gray-300 rounded text-gray-900 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <input
                   type="number"
@@ -98,7 +100,7 @@ export default function InventoryPage() {
                   placeholder="Price"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border-2 border-gray-300 rounded text-gray-900 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <button
@@ -112,19 +114,18 @@ export default function InventoryPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-gray-100 border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Product</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Quantity</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Value</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {products.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={4} className="px-6 py-12 text-center text-gray-700 font-medium">
                       No products yet. Add your first product to get started.
                     </td>
                   </tr>
@@ -139,13 +140,12 @@ export default function InventoryPage() {
                           type="number"
                           value={product.quantity}
                           onChange={(e) => updateQuantity(product.id, parseInt(e.target.value) || 0)}
-                          className="w-24 px-2 py-1 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-24 px-2 py-1 border-2 border-gray-300 rounded text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         {product.quantity < 10 && (
-                          <span className="ml-2 text-xs text-yellow-600 font-medium">Low Stock</span>
+                          <span className="ml-2 text-xs text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded">Low Stock</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-gray-900">{formatCurrency(product.price)}</td>
                       <td className="px-6 py-4 text-gray-900">
                         {formatCurrency(product.price * product.quantity)}
                       </td>
@@ -165,9 +165,9 @@ export default function InventoryPage() {
           </div>
 
           <div className="p-6 bg-gray-50 border-t">
-            <div className="flex justify-between text-sm">
-              <span className="font-medium text-gray-700">Total Inventory Value:</span>
-              <span className="font-bold text-gray-900">
+            <div className="flex justify-between text-base">
+              <span className="font-semibold text-gray-800">Total Inventory Value:</span>
+              <span className="font-bold text-blue-700 text-lg">
                 {formatCurrency(products.reduce((sum, p) => sum + (p.price * p.quantity), 0))}
               </span>
             </div>
