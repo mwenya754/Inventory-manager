@@ -22,3 +22,16 @@ export interface Expense {
   amount: number;
   date: string;
 }
+
+export interface WeeklyReport {
+  weekStart: string;
+  weekEnd: string;
+  totalSales: number;
+  totalRevenue: number;
+  productsSold: {
+    productName: string;
+    quantity: number;
+    revenue: number;
+  }[];
+  lowStock: Product[];
+}
