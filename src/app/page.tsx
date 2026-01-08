@@ -1,32 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Product } from '@/types';
 import { formatCurrency, generateId } from '@/lib/utils';
-import { storage } from '@/lib/storage';
 
 export default function InventoryPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const stored = localStorage.getItem('products');
+    return stored ? JSON.parse(stored) : [];
+  });
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', quantity: '', price: '' });
-  const [loading, setLoading] = useState(true);
 
-  // Load products from database on mount
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  const loadProducts = async () => {
-    setLoading(true);
-    const data = await storage.getProducts();
-    setProducts(data);
-    setLoading(false);
-  };
-
-  const saveProducts = async (newProducts: Product[]) => {
+  const saveProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
-    await storage.setProducts(newProducts);
+    localStorage.setItem('products', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
@@ -130,13 +120,7 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {loading ? (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-gray-700 font-medium">
-                      Loading products...
-                    </td>
-                  </tr>
-                ) : products.length === 0 ? (
+                {products.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-gray-700 font-medium">
                       No products yet. Add your first product to get started.

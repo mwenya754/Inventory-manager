@@ -1,48 +1,40 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Product, Sale, Expense } from '@/types';
 import { formatCurrency, generateId, getWeekRange } from '@/lib/utils';
-import { storage } from '@/lib/storage';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export default function SalesPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const storedProducts = localStorage.getItem('products');
+    return storedProducts ? JSON.parse(storedProducts) : [];
+  });
+  const [sales, setSales] = useState<Sale[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const storedSales = localStorage.getItem('sales');
+    return storedSales ? JSON.parse(storedSales) : [];
+  });
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const storedExpenses = localStorage.getItem('expenses');
+    return storedExpenses ? JSON.parse(storedExpenses) : [];
+  });
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('');
   const [saleAmount, setSaleAmount] = useState('');
   const [expenseDescription, setExpenseDescription] = useState('');
   const [expenseAmount, setExpenseAmount] = useState('');
-  const [loading, setLoading] = useState(true);
 
-  // Load data from database on mount
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    const [productsData, salesData, expensesData] = await Promise.all([
-      storage.getProducts(),
-      storage.getSales(),
-      storage.getExpenses()
-    ]);
-    setProducts(productsData);
-    setSales(salesData);
-    setExpenses(expensesData);
-    setLoading(false);
-  };
-
-  const saveSales = async (newSales: Sale[]) => {
+  const saveSales = (newSales: Sale[]) => {
     setSales(newSales);
-    await storage.setSales(newSales);
+    localStorage.setItem('sales', JSON.stringify(newSales));
   };
 
-  const recordSale = async () => {
+  const recordSale = () => {
     const product = products.find(p => p.id === selectedProduct);
     if (!product || !quantity) return;
     
@@ -69,26 +61,26 @@ export default function SalesPage() {
       p.id === product.id ? { ...p, quantity: p.quantity - saleQty, lastUpdated: new Date().toISOString() } : p
     );
     setProducts(updatedProducts);
-    await storage.setProducts(updatedProducts);
+    localStorage.setItem('products', JSON.stringify(updatedProducts));
 
-    await saveSales([...sales, newSale]);
+    saveSales([...sales, newSale]);
     setSelectedProduct('');
     setQuantity('');
     setSaleAmount('');
   };
 
-  const deleteSale = async (id: string) => {
+  const deleteSale = (id: string) => {
     if (confirm('Delete this sale?')) {
-      await saveSales(sales.filter(s => s.id !== id));
+      saveSales(sales.filter(s => s.id !== id));
     }
   };
 
-  const saveExpenses = async (newExpenses: Expense[]) => {
+  const saveExpenses = (newExpenses: Expense[]) => {
     setExpenses(newExpenses);
-    await storage.setExpenses(newExpenses);
+    localStorage.setItem('expenses', JSON.stringify(newExpenses));
   };
 
-  const recordExpense = async () => {
+  const recordExpense = () => {
     if (!expenseDescription || !expenseAmount) return;
 
     const newExpense: Expense = {
@@ -98,14 +90,14 @@ export default function SalesPage() {
       date: new Date().toISOString()
     };
 
-    await saveExpenses([...expenses, newExpense]);
+    saveExpenses([...expenses, newExpense]);
     setExpenseDescription('');
     setExpenseAmount('');
   };
 
-  const deleteExpense = async (id: string) => {
+  const deleteExpense = (id: string) => {
     if (confirm('Delete this expense?')) {
-      await saveExpenses(expenses.filter(e => e.id !== id));
+      saveExpenses(expenses.filter(e => e.id !== id));
     }
   };
 
