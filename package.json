@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@vercel/postgres": "^0.10.0",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "next": "16.1.1",
