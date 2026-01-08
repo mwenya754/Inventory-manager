@@ -6,51 +6,69 @@ import { storage } from '@/lib/storage';
 import { formatCurrency, formatDate, getWeekRange, isDateInWeek } from '@/lib/utils';
 
 export default function ReportsPage() {
-  const products = storage.getProducts() as Product[];
-  const [sales] = useState<Sale[]>(() => storage.getSales() as unknown as Sale[]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
   const [selectedWeekOffset, setSelectedWeekOffset] = useState(0);
   const [report, setReport] = useState<WeeklyReport | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load data from database
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const [productsData, salesData] = await Promise.all([
+        storage.getProducts(),
+        storage.getSales()
+      ]);
+      setProducts(productsData);
+      setSales(salesData);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
 
   useEffect(() => {
-    const generateReport = () => {
-      const currentDate = new Date();
-      currentDate.setDate(currentDate.getDate() + (selectedWeekOffset * 7));
-      const { start, end } = getWeekRange(currentDate);
+    if (!loading) {
+      const generateReport = () => {
+        const currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() + (selectedWeekOffset * 7));
+        const { start, end } = getWeekRange(currentDate);
 
-      const weekSales = sales.filter(sale => isDateInWeek(sale.date, start, end));
+        const weekSales = sales.filter(sale => isDateInWeek(sale.date, start, end));
 
-      const productSalesMap = new Map<string, { quantity: number; revenue: number }>();
-      weekSales.forEach(sale => {
-        const existing = productSalesMap.get(sale.productName) || { quantity: 0, revenue: 0 };
-        productSalesMap.set(sale.productName, {
-          quantity: existing.quantity + sale.quantity,
-          revenue: existing.revenue + sale.totalPrice
+        const productSalesMap = new Map<string, { quantity: number; revenue: number }>();
+        weekSales.forEach(sale => {
+          const existing = productSalesMap.get(sale.productName) || { quantity: 0, revenue: 0 };
+          productSalesMap.set(sale.productName, {
+            quantity: existing.quantity + sale.quantity,
+            revenue: existing.revenue + sale.totalPrice
+          });
         });
-      });
 
-      const productsSold = Array.from(productSalesMap.entries())
-        .map(([productName, data]) => ({
-          productName,
-          quantity: data.quantity,
-          revenue: data.revenue
-        }))
-        .sort((a, b) => b.revenue - a.revenue);
+        const productsSold = Array.from(productSalesMap.entries())
+          .map(([productName, data]) => ({
+            productName,
+            quantity: data.quantity,
+            revenue: data.revenue
+          }))
+          .sort((a, b) => b.revenue - a.revenue);
 
-      const totalRevenue = weekSales.reduce((sum, sale) => sum + sale.totalPrice, 0);
-      const lowStock = products.filter(p => p.quantity < 10);
+        const totalRevenue = weekSales.reduce((sum, sale) => sum + sale.totalPrice, 0);
+        const lowStock = products.filter(p => p.quantity < 10);
 
-      setReport({
-        weekStart: start.toISOString(),
-        weekEnd: end.toISOString(),
-        totalSales: weekSales.length,
-        totalRevenue,
-        productsSold,
-        lowStock
-      });
-    };
+        setReport({
+          weekStart: start.toISOString(),
+          weekEnd: end.toISOString(),
+          totalSales: weekSales.length,
+          totalRevenue,
+          productsSold,
+          lowStock
+        });
+      };
 
-    generateReport();
-  }, [products, sales, selectedWeekOffset]);
+      generateReport();
+    }
+  }, [products, sales, selectedWeekOffset, loading]);
 
   const handleShare = async () => {
     if (!report) return;

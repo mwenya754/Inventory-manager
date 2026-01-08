@@ -1,40 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Product, Sale, Expense } from '@/types';
 import { formatCurrency, generateId, getWeekRange } from '@/lib/utils';
+import { storage } from '@/lib/storage';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export default function SalesPage() {
-  const [products, setProducts] = useState<Product[]>(() => {
-    if (typeof window === 'undefined') return [];
-    const storedProducts = localStorage.getItem('products');
-    return storedProducts ? JSON.parse(storedProducts) : [];
-  });
-  const [sales, setSales] = useState<Sale[]>(() => {
-    if (typeof window === 'undefined') return [];
-    const storedSales = localStorage.getItem('sales');
-    return storedSales ? JSON.parse(storedSales) : [];
-  });
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    if (typeof window === 'undefined') return [];
-    const storedExpenses = localStorage.getItem('expenses');
-    return storedExpenses ? JSON.parse(storedExpenses) : [];
-  });
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('');
   const [saleAmount, setSaleAmount] = useState('');
   const [expenseDescription, setExpenseDescription] = useState('');
   const [expenseAmount, setExpenseAmount] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const saveSales = (newSales: Sale[]) => {
-    setSales(newSales);
-    localStorage.setItem('sales', JSON.stringify(newSales));
+  // Load data from database on mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [productsData, salesData, expensesData] = await Promise.all([
+      storage.getProducts(),
+      storage.getSales(),
+      storage.getExpenses()
+    ]);
+    setProducts(productsData);
+    setSales(salesData);
+    setExpenses(expensesData);
+    setLoading(false);
   };
 
-  const recordSale = () => {
+  const saveSales = async (newSales: Sale[]) => {
+    setSales(newSales);
+    await storage.setSales(newSales);
+  };
+
+  const recordSale = async () => {
     const product = products.find(p => p.id === selectedProduct);
     if (!product || !quantity) return;
     
@@ -61,26 +69,26 @@ export default function SalesPage() {
       p.id === product.id ? { ...p, quantity: p.quantity - saleQty, lastUpdated: new Date().toISOString() } : p
     );
     setProducts(updatedProducts);
-    localStorage.setItem('products', JSON.stringify(updatedProducts));
+    await storage.setProducts(updatedProducts);
 
-    saveSales([...sales, newSale]);
+    await saveSales([...sales, newSale]);
     setSelectedProduct('');
     setQuantity('');
     setSaleAmount('');
   };
 
-  const deleteSale = (id: string) => {
+  const deleteSale = async (id: string) => {
     if (confirm('Delete this sale?')) {
-      saveSales(sales.filter(s => s.id !== id));
+      await saveSales(sales.filter(s => s.id !== id));
     }
   };
 
-  const saveExpenses = (newExpenses: Expense[]) => {
+  const saveExpenses = async (newExpenses: Expense[]) => {
     setExpenses(newExpenses);
-    localStorage.setItem('expenses', JSON.stringify(newExpenses));
+    await storage.setExpenses(newExpenses);
   };
 
-  const recordExpense = () => {
+  const recordExpense = async () => {
     if (!expenseDescription || !expenseAmount) return;
 
     const newExpense: Expense = {
@@ -90,14 +98,14 @@ export default function SalesPage() {
       date: new Date().toISOString()
     };
 
-    saveExpenses([...expenses, newExpense]);
+    await saveExpenses([...expenses, newExpense]);
     setExpenseDescription('');
     setExpenseAmount('');
   };
 
-  const deleteExpense = (id: string) => {
+  const deleteExpense = async (id: string) => {
     if (confirm('Delete this expense?')) {
-      saveExpenses(expenses.filter(e => e.id !== id));
+      await saveExpenses(expenses.filter(e => e.id !== id));
     }
   };
 
